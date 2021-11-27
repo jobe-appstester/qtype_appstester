@@ -72,10 +72,10 @@ class get_submission extends \external_api
         array $included_file_hashes
     ): array
     {
-        $result = array('id' => $question_attempt_step->get_id());
-
         $checker_system_name = $question_definition->checker_system_name;
         $checker_definition = checker_definitions_registry::get_by_system_name($checker_system_name);
+
+        $result = array('attempt_id' => $question_attempt_step->get_id(), 'checker_system_name' => $checker_system_name);
 
         $result['parameters'] = self::get_parameters(
             $checker_definition,
@@ -217,7 +217,8 @@ class get_submission extends \external_api
 
         return new \external_single_structure(
             array(
-                'id' => new \external_value(PARAM_INT),
+                'attempt_id' => new \external_value(PARAM_INT),
+                'checker_system_name' => new \external_value(PARAM_TEXT),
                 'parameters' => new \external_single_structure(
                     array_merge(
                         array(

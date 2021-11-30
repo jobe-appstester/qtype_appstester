@@ -25,7 +25,6 @@ class android_checker_definition implements checker_definition
     {
         return array(
             new single_file_parameter('template', 'ZIP файл с шаблоном', array('zip')),
-            new string_parameter('android_package_name', 'Название тестового пакета')
         );
     }
 

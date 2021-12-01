@@ -37,8 +37,12 @@ class android_checker_definition implements checker_definition
 
     public function render_result_feedback(array $result): string
     {
-        if ($result["GradleError"]) {
-            return "<pre>" . $result["GradleError"] . "</pre>";
+        if ($result["CompilationError"]) {
+            return "<pre>" . $result["CompilationError"] . "</pre>";
+        }
+
+        if ($result["ValidationError"]) {
+            return "<pre>" . $result["ValidationError"] . "</pre>";
         }
 
         $html = '<p>Набрано ' . $result['Grade'] . ' баллов из ' . $result['TotalGrade'] . '</p>';
@@ -68,6 +72,8 @@ class android_checker_definition implements checker_definition
                 return 'Началась проверка работы';
             case 'unzip_files':
                 return 'Производится распаковка решения';
+            case 'validate_submission':
+                return 'Проверяется целостность решения';
             case 'gradle_build':
                 return 'Приложение собирается';
             case 'install_application':

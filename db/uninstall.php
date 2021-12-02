@@ -3,7 +3,7 @@
 /**
  * @throws ddl_exception
  */
-function xmldb_qtype_appstester_uninstall($oldversion): bool
+function xmldb_qtype_appstester_uninstall(): bool
 {
     global $DB;
 

@@ -47,11 +47,11 @@ class set_submission_results extends \external_api
         $updated_step = new \stdClass();
         $updated_step->id = $id;
 
-        if ($fraction === 1) {
-            $updated_step->state = 'gradedright';
-        } else {
+//        if ($fraction == 1.0) {
+//            $updated_step->state = 'gradedright';
+//        } else {
             $updated_step->state = 'invalid';
-        }
+//        }
 
         $updated_step->fraction = $fraction;
 
@@ -66,6 +66,34 @@ class set_submission_results extends \external_api
         $result_step_data->value = $result;
 
         $DB->insert_record('question_attempt_step_data', $result_step_data);
+
+        //getting last step by its behaviour var to verify that attempt was finished (when regrading, we need to update finishing step manually)
+        $finishing_step = $DB->get_record_sql("
+            SELECT qas.*
+            FROM mdl_question_attempt_steps qas
+            JOIN mdl_question_attempt_step_data qasd ON qasd.attemptstepid = qas.id
+            WHERE qas.questionattemptid = :qa_id
+              AND qasd.name = '-finish' 
+              AND qasd.value = '1'
+        ", ['qa_id' => $submission_step->questionattemptid]);
+
+        if ($finishing_step) {
+            $updated_finishing_step = new \stdClass();
+            if ($fraction == 1.0) {
+                $updated_finishing_step->state = 'gradedright';
+            } else if ($fraction == 0.0) {
+                $updated_finishing_step->state = 'gradedwrong';
+            } else {
+                $updated_finishing_step->state = 'gradedpartial';
+            }
+            $updated_finishing_step->fraction = $fraction;
+
+            $DB->update_record(
+                'question_attempt_steps',
+                $updated_finishing_step
+            );
+        }
+        //if finishing step isn't found, test attempt is still active and QBehaviour will take care of grading the step
 
         return true;
     }

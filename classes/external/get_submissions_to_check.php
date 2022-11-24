@@ -20,7 +20,7 @@ class get_submissions_to_check extends \external_api {
             LEFT JOIN {question} q ON qa.questionid = q.id
             WHERE 
                 q.qtype = \'appstester\' AND
-                qas.state = \'needsgrading\'
+                qas.state = \'complete\'
         ');
 
         return array_keys($submissions);

@@ -15,7 +15,7 @@ class qtype_appstester_question extends question_graded_automatically
     public function grade_response(array $response): array
     {
         $fraction = 0;
-        $state = question_state::$needsgrading;
+        $state = question_state::$complete;
         return array($fraction, $state);
     }
 

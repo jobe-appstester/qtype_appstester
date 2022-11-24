@@ -33,7 +33,7 @@ class get_submission extends \external_api
             LEFT JOIN {question} q ON qa.questionid = q.id
             WHERE 
                 q.qtype = \'appstester\' AND
-                qas.state = \'needsgrading\' AND
+                qas.state = \'complete\' AND
                 qas.id = ' . $id . '
             ORDER BY qas.id
         ', null, MUST_EXIST);

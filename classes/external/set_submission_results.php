@@ -79,6 +79,7 @@ class set_submission_results extends \external_api
 
         if ($finishing_step) {
             $updated_finishing_step = new \stdClass();
+            $updated_finishing_step->id = $finishing_step->id;
             if ($fraction == 1.0) {
                 $updated_finishing_step->state = 'gradedright';
             } else if ($fraction == 0.0) {

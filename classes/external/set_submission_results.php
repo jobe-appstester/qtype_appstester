@@ -46,26 +46,8 @@ class set_submission_results extends \external_api
 
         $updated_step = new \stdClass();
         $updated_step->id = $id;
-
-//        if ($fraction == 1.0) {
-//            $updated_step->state = 'gradedright';
-//        } else {
-            $updated_step->state = 'invalid';
-//        }
-
         $updated_step->fraction = $fraction;
-
-        $DB->update_record(
-            'question_attempt_steps',
-            $updated_step
-        );
-
-        $result_step_data = new \stdClass();
-        $result_step_data->attemptstepid = $submission_step->id;
-        $result_step_data->name = '-result';
-        $result_step_data->value = $result;
-
-        $DB->insert_record('question_attempt_step_data', $result_step_data);
+        $updated_step->state = 'invalid';
 
         //getting last step by its behaviour var to verify that attempt was finished (when regrading, we need to update finishing step manually)
         $finishing_step = $DB->get_record_sql("
@@ -93,8 +75,35 @@ class set_submission_results extends \external_api
                 'question_attempt_steps',
                 $updated_finishing_step
             );
+        } else { // if finishing step is not found, verify that test is NOT active (regrading for old attempts without any separate finishing step)
+
+            $step_with_result = $DB->get_record('question_attempt_step_data', ['attemptstepid' => $submission_step->id, 'name' => '-result']);
+
+            if ($step_with_result) {
+                // if we found step data with results in it, regrading is happening,
+                // and we should "make" graded finishing step out of submission step.
+                // We can't run process_finish on finished attempts and make a separate finishing step.
+                if ($fraction == 1.0) {
+                    $updated_step->state = 'gradedright';
+                } else if ($fraction == 0.0) {
+                    $updated_step->state = 'gradedwrong';
+                } else {
+                    $updated_step->state = 'gradedpartial';
+                }
+            } // else test attempt is still active and QBehaviour will take care of grading the step
         }
-        //if finishing step isn't found, test attempt is still active and QBehaviour will take care of grading the step
+
+        $DB->update_record(
+            'question_attempt_steps',
+            $updated_step
+        );
+
+        $result_step_data = new \stdClass();
+        $result_step_data->attemptstepid = $submission_step->id;
+        $result_step_data->name = '-result';
+        $result_step_data->value = $result;
+
+        $DB->insert_record('question_attempt_step_data', $result_step_data);
 
         return true;
     }

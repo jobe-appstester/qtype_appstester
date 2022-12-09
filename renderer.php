@@ -44,15 +44,18 @@ class qtype_appstester_renderer extends qtype_renderer {
             }
         } else {
             $laststepwithresult = $qa->get_last_step_with_behaviour_var('result');
-            if ($laststepwithresult->get_state() !== question_state::$unprocessed) {
-                $result = json_decode($laststepwithresult->get_qt_var('-result'), true);
-                return $checker->render_result_feedback($result);
-            }
+            $laststepwithstatus = $qa->get_last_step_with_behaviour_var('status');
 
-            $laststepwithstatus= $qa->get_last_step_with_behaviour_var('status');
-            if ($laststepwithstatus->get_state() !== question_state::$unprocessed) {
-                $status = json_decode($laststepwithstatus->get_qt_var('-status'), true);
-                return $checker->render_status_feedback($status);
+            if ($laststepwithresult === $laststepwithstatus) { // if "result" and "status" steps are the same, last step is already checked, we can render the latest result
+                if ($laststepwithresult->get_state() !== question_state::$unprocessed) {
+                    $result = json_decode($laststepwithresult->get_qt_var('-result'), true);
+                    return $checker->render_result_feedback($result);
+                }
+            } else { // else "status" step should be the latest step, which is waiting for results, so we render status feedback
+                if ($laststepwithstatus->get_state() !== question_state::$unprocessed) {
+                    $status = json_decode($laststepwithstatus->get_qt_var('-status'), true);
+                    return $checker->render_status_feedback($status);
+                }
             }
         }
 

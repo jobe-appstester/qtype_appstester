@@ -69,7 +69,7 @@ class single_file_parameter extends base_parameter implements file_parameter
         $file_manager_options->maxbytes = -1;
         $file_manager_options->context = $options->context;
         $file_manager_options->return_types = FILE_INTERNAL | FILE_CONTROLLED_LINK;
-        $file_manager_options->accepted_types = 'zip';
+        $file_manager_options->accepted_types = '.zip';
         $file_manager_options->itemid = $draft_item_id;
         return new form_filemanager($file_manager_options);
     }

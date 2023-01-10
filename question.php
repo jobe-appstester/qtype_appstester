@@ -6,21 +6,18 @@ defined('MOODLE_INTERNAL') || die();
 
 require_once($CFG->dirroot . '/question/behaviour/appstester/behaviour.php');
 
-class qtype_appstester_question extends question_graded_automatically
-{
+class qtype_appstester_question extends question_graded_automatically {
     /**
      * @param array $response
      * @return array
      */
-    public function grade_response(array $response): array
-    {
+    public function grade_response(array $response): array {
         $fraction = 0;
         $state = question_state::$complete;
         return array($fraction, $state);
     }
 
-    public function get_expected_data(): array
-    {
+    public function get_expected_data(): array {
         $checker_system_name = $this->checker_system_name;
         $checker = checker_definitions_registry::get_by_system_name($checker_system_name);
 
@@ -33,17 +30,21 @@ class qtype_appstester_question extends question_graded_automatically
         return $expected_data;
     }
 
-    public function get_correct_response()
-    {
+    public function get_correct_response() {
     }
 
     /**
      * @param array $response
      * @return bool
      */
-    public function is_complete_response(array $response): bool
-    {
-        return true;
+    public function is_complete_response(array $response): bool {
+        if (!empty($response['submission'])) {
+            if ($files = $response['submission']->get_files()) {
+                return true;
+            }
+        }
+        \core\notification::warning(get_string('no_files_submitted', 'qtype_appstester'));
+        return false;
     }
 
     /**
@@ -51,30 +52,30 @@ class qtype_appstester_question extends question_graded_automatically
      * @param array $newresponse
      * @return false
      */
-    public function is_same_response(array $prevresponse, array $newresponse): bool
-    {
-        return false;
+    public function is_same_response(array $prevresponse, array $newresponse): bool {
+        $responses_are_identical = question_utils::arrays_same_at_key_missing_is_blank(
+            $prevresponse, $newresponse, 'submission');
+        if ($responses_are_identical) {
+            \core\notification::warning(get_string('same_response_submitted', 'qtype_appstester'));
+        }
+        return $responses_are_identical;
     }
 
-    public function summarise_response(array $response): string
-    {
+    public function summarise_response(array $response): string {
         return 'решение задачи';
     }
 
-    public function get_validation_error(array $response)
-    {
+    public function get_validation_error(array $response) {
     }
 
     /**
      * @throws coding_exception
      */
-    public function make_behaviour(question_attempt $qa, $preferredbehaviour): qbehaviour_appstester
-    {
+    public function make_behaviour(question_attempt $qa, $preferredbehaviour): qbehaviour_appstester {
         return new qbehaviour_appstester($qa, $preferredbehaviour);
     }
 
-    public function check_file_access($qa, $options, $component, $filearea, $args, $forcedownload): bool
-    {
+    public function check_file_access($qa, $options, $component, $filearea, $args, $forcedownload): bool {
         return true;
     }
 }

@@ -13,17 +13,25 @@ class get_submissions_to_check extends \external_api {
         global $DB;
 
         $submissions = $DB->get_records_sql('
-            SELECT
-                qas.id
-            FROM {question_attempt_steps} qas
-            LEFT JOIN {question_attempts} qa ON qas.questionattemptid = qa.id
+                SELECT
+                qa.id, string_agg(qas.id::character varying, \',\') as attemptstepsids
+            FROM {question_attempts} qa
+            LEFT JOIN {question_attempt_steps} qas ON qas.questionattemptid = qa.id
             LEFT JOIN {question} q ON qa.questionid = q.id
             WHERE 
                 q.qtype = \'appstester\' AND
                 qas.state = \'complete\'
+            GROUP BY qa.id
         ');
 
-        return array_keys($submissions);
+//        $array = new \stdClass();
+        $array = [];
+        foreach ($submissions as $s) {
+//            $array->{$s->id} = ["attemptid"=>$s->id, "stepids"=>array_map('intval', explode(',', $s->attemptstepsids))];
+            $array[$s->id] = ["attemptId"=>$s->id, "attemptStepsIds"=>array_map('intval', explode(',', $s->attemptstepsids))];
+        }
+
+        return $array;
     }
 
     public static function get_submissions_to_check_parameters(): \external_function_parameters
@@ -35,6 +43,11 @@ class get_submissions_to_check extends \external_api {
 
     public static function get_submissions_to_check_returns(): \external_multiple_structure
     {
-        return new \external_multiple_structure(new \external_value(PARAM_INT));
+        return new \external_multiple_structure(new \external_single_structure(array(
+                    "attemptId" => new \external_value(PARAM_INT),
+                    "attemptStepsIds" => new \external_multiple_structure(new \external_value(PARAM_INT))
+                )
+            )
+        );
     }
 }

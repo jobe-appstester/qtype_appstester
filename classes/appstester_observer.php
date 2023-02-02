@@ -37,8 +37,35 @@ class appstester_observer {
      */
     public static function attempt_regraded($event) {
         global $DB;
-        $cmid = $event->contextinstanceid;
-        $regradedquizid = $event->other['quizid'];
-        $test = 123;
+        $quiz_attempt_id = $event->objectid;
+        $sql = "
+            SELECT quiza.id, qa.behaviour
+            FROM {quiz_attempts} quiza
+            JOIN {question_usages} qu ON qu.id = quiza.uniqueid
+            JOIN {question_attempts} qa ON qa.questionusageid = qu.id
+            WHERE quiza.id = :quizaid AND qa.behaviour = 'appstester'";
+        $params = ['quizaid' => $quiz_attempt_id];
+        $result = $DB->get_record_sql($sql, $params);
+
+        if ($result) {
+            // Check if quiz is in table already
+            $regraded_quiz_id = $event->other['quizid'];
+            $sql = "
+                SELECT q.*
+                FROM {qtype_appstester_quizupdate} q
+                WHERE q.quiz_id = :quizid AND q.status = 'waiting'
+            ";
+            $params = ['quizid' => $regraded_quiz_id];
+            $quiz_in_table = $DB->get_record_sql($sql, $params);
+
+            // Add quiz to table if there's no quiz with such id yet
+            if (!$quiz_in_table) {
+                $insert_object = new \stdClass();
+                $insert_object->quiz_id = $regraded_quiz_id;
+                $insert_object->status = 'waiting';
+                $insert_object->timecreated = time();
+                $DB->insert_record('qtype_appstester_quizupdate', $insert_object);
+            }
+        }
     }
 }

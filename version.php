@@ -3,9 +3,9 @@
 defined('MOODLE_INTERNAL') || die();
 
 $plugin->component = 'qtype_appstester';
-$plugin->version = 2022122900;
+$plugin->version = 2023020200;
 $plugin->maturity = MATURITY_BETA;
 $plugin->release = 'v0.01';
 $plugin->dependencies = array(
-    'qbehaviour_appstester' => 2021121000
+    'qbehaviour_appstester' => 2023020200
 );

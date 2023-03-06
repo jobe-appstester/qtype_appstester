@@ -32,7 +32,7 @@ class set_submission_results extends \external_api
             LEFT JOIN {question} q ON qa.questionid = q.id
             WHERE 
                 q.qtype = \'appstester\' AND
-                qas.state = \'needsgrading\' AND
+                qas.state = \'complete\' AND
                 qas.id = ' . $id . '
             ORDER BY qas.id
         ', null, MUST_EXIST);
@@ -44,29 +44,85 @@ class set_submission_results extends \external_api
         $result_json_data = json_decode($result, true);
         $fraction = (new android_checker_definition())->get_fraction_from_result($result_json_data);
 
-        $updated_step = new \stdClass();
-        $updated_step->id = $id;
-
-        if ($fraction === 1) {
-            $updated_step->state = 'gradedright';
-        } else {
-            $updated_step->state = 'invalid';
-        }
-
-        $updated_step->fraction = $fraction;
-
-        $DB->update_record(
-            'question_attempt_steps',
-            $updated_step
-        );
+        $updated_submission_step = new \stdClass();
+        $updated_submission_step->id = $id;
+        $updated_submission_step->fraction = $fraction;
+        $updated_submission_step->state = 'invalid';
 
         $result_step_data = new \stdClass();
         $result_step_data->attemptstepid = $submission_step->id;
         $result_step_data->name = '-result';
         $result_step_data->value = $result;
 
-        $DB->insert_record('question_attempt_step_data', $result_step_data);
+        //getting last step by its behaviour var "-finish" to verify that attempt was finished (when regrading, we need to update finishing step manually)
+        $finishing_step = $DB->get_record_sql("
+            SELECT qas.*
+            FROM mdl_question_attempt_steps qas
+            JOIN mdl_question_attempt_step_data qasd ON qasd.attemptstepid = qas.id
+            WHERE qas.questionattemptid = :qa_id
+              AND qasd.name = '-finish' 
+              AND qasd.value = '1'
+        ", ['qa_id' => $submission_step->questionattemptid]);
 
+        $step_with_result = $DB->get_record_sql("
+            SELECT qasd.*
+            FROM {question_attempt_step_data} qasd
+            WHERE qasd.attemptstepid = :subm_id
+              AND qasd.name = '-result'
+            ORDER BY qasd.id DESC
+            LIMIT 1
+        ", ['subm_id' => $submission_step->id]);
+
+        if ($step_with_result) {
+            $result_step_data->id = $step_with_result->id;
+        }
+
+        if ($finishing_step) { // if finishing step is found, usual regrade is happening
+            $updated_finishing_step = new \stdClass();
+            $updated_finishing_step->id = $finishing_step->id;
+
+            $updated_finishing_step->fraction = max($fraction, $finishing_step->fraction);
+            if ($updated_finishing_step->fraction < 0.000001) {
+                $updated_finishing_step->state = 'gradedwrong';
+            } else if ($updated_finishing_step->fraction > 0.999999) {
+                $updated_finishing_step->state = 'gradedright';
+            } else {
+                $updated_finishing_step->state = 'gradedpartial';
+            }
+
+            $DB->update_record(
+                'question_attempt_steps',
+                $updated_finishing_step
+            );
+        } else {
+            // if finishing step isn't found, verify that the submission doesn't have results yet
+            // (attempts from old version plugin don't have any separate finishing step)
+
+            if ($step_with_result) {
+                // if we found submission step WITH results in it but there is no finishing step, regrading of old attempt is happening,
+                // and we should "make" graded finishing step out of submission step, because
+                // we can't run process_finish on finished attempts and make a separate finishing step via API.
+                $updated_submission_step->fraction = max($fraction, $submission_step->fraction);
+                if ($updated_submission_step->fraction < 0.000001) {
+                    $updated_submission_step->state = 'gradedwrong';
+                } else if ($updated_submission_step->fraction > 0.999999) {
+                    $updated_submission_step->state = 'gradedright';
+                } else {
+                    $updated_submission_step->state = 'gradedpartial';
+                }
+            } // else test attempt is still active and QBehaviour will take care of grading the step
+        }
+
+        $DB->update_record(
+            'question_attempt_steps',
+            $updated_submission_step
+        );
+
+        if(isset($result_step_data->id)) {
+            $DB->update_record('question_attempt_step_data', $result_step_data);
+        } else {
+            $DB->insert_record('question_attempt_step_data', $result_step_data);
+        }
         return true;
     }
 

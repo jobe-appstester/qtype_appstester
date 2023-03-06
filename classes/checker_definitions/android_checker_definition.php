@@ -38,7 +38,7 @@ class android_checker_definition implements checker_definition
     public function render_result_feedback(array $result): string
     {
         if ($result["CompilationError"]) {
-            return "<pre>" . $result["CompilationError"] . "</pre>";
+            return "<pre><code class='language-gradle'>" . $result["CompilationError"] . "</code></pre>";
         }
 
         if ($result["ValidationError"]) {
@@ -55,7 +55,7 @@ class android_checker_definition implements checker_definition
 
         $test_results = [];
         foreach ($result['TestResults'] as $test_result) {
-            $test_results[] = array($test_result['Test'], $test_result['ResultCode'] === 0 ? 'OK' : $test_result['Stream']);
+            $test_results[] = array($test_result['Test'], '<pre><code class="language-java">' . ($test_result['ResultCode'] === 0 ? 'OK' : $test_result['Stream']) . '</code></pre>');
         }
 
         $table->data = $test_results;

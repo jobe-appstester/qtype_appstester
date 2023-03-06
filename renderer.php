@@ -29,17 +29,54 @@ class qtype_appstester_renderer extends qtype_renderer {
      */
     public function feedback(question_attempt $qa, question_display_options $options): string
     {
+        $_question = $qa->get_question();
+        $_state = $qa->get_state();
+        $render_result = true;
+        if (!has_capability('moodle/grade:viewhidden', $options->context) &&
+                (($_state->is_active() && $_question->hideresult_whileactive)
+                || ($_state->is_finished() && $_question->hideresult_afterfinish))
+        ) {
+            $render_result = false;
+        }
+
         $checker_system_name = $qa->get_question()->checker_system_name;
         $checker = checker_definitions_registry::get_by_system_name($checker_system_name);
 
-        if ($qa->get_last_step()->has_behaviour_var('result')) {
-            $result = json_decode($qa->get_last_step()->get_qt_var('-result'), true);
-            return $checker->render_result_feedback($result);
-        }
+        if ($_state->is_active()) {
+            if ($qa->get_last_step()->has_behaviour_var('result')) {
+                if ($render_result) {
+                    $result = json_decode($qa->get_last_step()->get_qt_var('-result'), true);
+                    return $checker->render_result_feedback($result);
+                } else {
+                    return get_string('results_are_hidden', 'qtype_appstester')
+                         . get_string('app_is_tested', 'qtype_appstester');
+                }
+            }
 
-        if ($qa->get_last_step()->has_behaviour_var('status')) {
-            $status = json_decode($qa->get_last_step()->get_qt_var('-status'), true);
-            return $checker->render_status_feedback($status);
+            if ($qa->get_last_step()->has_behaviour_var('status')) {
+                $status = json_decode($qa->get_last_step()->get_qt_var('-status'), true);
+                return $checker->render_status_feedback($status);
+            }
+        } else {
+            $laststepwithresult = $qa->get_last_step_with_behaviour_var('result');
+            $laststepwithstatus = $qa->get_last_step_with_behaviour_var('status');
+
+            if ($laststepwithresult === $laststepwithstatus) { // if "result" and "status" steps are the same, last step is already checked, we can render the latest result
+                if ($laststepwithresult->get_state() !== question_state::$unprocessed) {
+                    if ($render_result) {
+                        $result = json_decode($laststepwithresult->get_qt_var('-result'), true);
+                        return $checker->render_result_feedback($result);
+                    } else {
+                        return get_string('results_are_hidden', 'qtype_appstester')
+                             . get_string('app_is_tested', 'qtype_appstester');
+                    }
+                }
+            } else { // else "status" step should be the latest step, which is waiting for results, so we render status feedback
+                if ($laststepwithstatus->get_state() !== question_state::$unprocessed) {
+                    $status = json_decode($laststepwithstatus->get_qt_var('-status'), true);
+                    return $checker->render_status_feedback($status);
+                }
+            }
         }
 
         return '';

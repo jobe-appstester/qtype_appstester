@@ -43,9 +43,13 @@ function ensure_database(): bool
 
         $columns = $DB->get_columns('qtype_appstester_parameters');
         foreach ($columns as $column) {
-            $should_drop_field = true;
+            $should_drop_field = false;
 
-            if ($column->name == 'id' || $column->name == 'questionid' || $column->name == 'checker_system_name')
+            if ($column->name == 'id'
+                || $column->name == 'questionid'
+                || $column->name == 'checker_system_name'
+//                || $column->name == 'hide_test_results'
+            )
                 continue;
 
             foreach ($teacher_parameters as $teacher_parameter) {

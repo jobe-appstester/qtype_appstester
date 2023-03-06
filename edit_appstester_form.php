@@ -28,8 +28,14 @@ class qtype_appstester_edit_form extends question_edit_form {
             $checkers_selection[$checker->get_system_name()] = $checker->get_human_readable_name();
         }
 
-        $mform->addElement('header', 'check_options', 'Параметры проверки');
-        $mform->addElement('select', 'checker_system_name', 'Сервис проверки', $checkers_selection);
+        $mform->addElement('header', 'check_options', get_string('check_options', 'qtype_appstester'));
+        $mform->addElement('select', 'checker_system_name', get_string('checker_system_name', 'qtype_appstester'), $checkers_selection);
+
+        $mform->addElement('advcheckbox', 'hideresult_whileactive', get_string('hideresult_whileactive', 'qtype_appstester'));
+        $mform->setDefault('hideresult_whileactive', 0);
+
+        $mform->addElement('advcheckbox', 'hideresult_afterfinish', get_string('hideresult_afterfinish', 'qtype_appstester'));
+        $mform->setDefault('hideresult_afterfinish', 0);
 
         foreach ($checkers as $checker) {
             $teacher_parameters = $checker->get_teacher_parameters();

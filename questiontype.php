@@ -13,6 +13,8 @@ class qtype_appstester extends question_type
         $fields = array(
             'qtype_appstester_parameters',
             'checker_system_name',
+            'hideresult_whileactive',
+            'hideresult_afterfinish',
         );
 
         $checkers = checker_definitions_registry::get_all_definitions();

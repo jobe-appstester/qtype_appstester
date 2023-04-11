@@ -99,17 +99,28 @@ class set_submission_results extends \external_api
             // (attempts from old version plugin don't have any separate finishing step)
 
             if ($step_with_result) {
-                // if we found submission step WITH results in it but there is no finishing step, regrading of old attempt is happening,
-                // and we should "make" graded finishing step out of submission step, because
-                // we can't run process_finish on finished attempts and make a separate finishing step via API.
+                /* if we found submission step WITH results in it but there is no finishing step, 2 things can be happening:
+                   1. Regrading of old attempt, which don't have separate finishing step
+                      - we should "make" graded finishing step out of submission step, because
+                        we can't run process_finish on finished attempts and make a separate finishing step via API.
+                   2. Attempt is still in progress (regrading a bunch of attempts)
+                      - in this case attempt is saved just as usual, with "invalid" state, but we take max grade from old and new result
+                */
+                // TODO: check if regrade of old attempt is happening, rather than this is an attempt in progress
+
+                // CASE 1
+//                $updated_submission_step->fraction = max($fraction, $submission_step->fraction);
+//                if ($updated_submission_step->fraction < 0.000001) {
+//                    $updated_submission_step->state = 'gradedwrong';
+//                } else if ($updated_submission_step->fraction > 0.999999) {
+//                    $updated_submission_step->state = 'gradedright';
+//                } else {
+//                    $updated_submission_step->state = 'gradedpartial';
+//                }
+
+                // CASE 2
                 $updated_submission_step->fraction = max($fraction, $submission_step->fraction);
-                if ($updated_submission_step->fraction < 0.000001) {
-                    $updated_submission_step->state = 'gradedwrong';
-                } else if ($updated_submission_step->fraction > 0.999999) {
-                    $updated_submission_step->state = 'gradedright';
-                } else {
-                    $updated_submission_step->state = 'gradedpartial';
-                }
+                $updated_submission_step->state = 'invalid';
             } // else test attempt is still active and QBehaviour will take care of grading the step
         }
 

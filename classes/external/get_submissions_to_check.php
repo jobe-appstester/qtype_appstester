@@ -14,7 +14,7 @@ class get_submissions_to_check extends \external_api {
 
         $submissions = $DB->get_records_sql('
                 SELECT
-                qa.id, string_agg(qas.id::character varying, \',\') as attemptstepsids
+                qa.id, string_agg(qas.id::character varying, \',\' ORDER BY qas.id DESC) as attemptstepsids
             FROM {question_attempts} qa
             LEFT JOIN {question_attempt_steps} qas ON qas.questionattemptid = qa.id
             LEFT JOIN {question} q ON qa.questionid = q.id

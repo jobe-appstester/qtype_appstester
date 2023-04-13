@@ -59,9 +59,20 @@ class set_submission_status extends \external_api
             $DB->update_record('question_attempt_step_data', $status_step_update_data);
         }
 
-        // TODO: при сабмите статуса шаг попытки находится в процессе проверки, и система продолжает её пуллить
-        //       после первого присвоения можно дать шагу попытки какой нибудь pending шаг\статус, чтобы контроллер больше не пытался пуллить этот шаг.
-        //       хотелось проверять наличие статуса, но непонятно, как разделить понимание, что это не регрейд, т.к. после первого решения статус уже есть
+        $incheck_count = $DB->count_records('question_attempt_step_data', array('attemptstepid' => $submission_step->id, 'name' => '-incheck'));
+        if ($incheck_count === 0) {
+            $incheck_step_insert = new \stdClass();
+            $incheck_step_insert->attemptstepid = $submission_step->id;
+            $incheck_step_insert->name = '-incheck';
+            $incheck_step_insert->value = 1;
+            $DB->insert_record('question_attempt_step_data', $incheck_step_insert);
+        } else {
+            $incheck_step_data = $DB->get_record('question_attempt_step_data', array('attemptstepid' => $submission_step->id, 'name' => '-incheck'));
+            $updated_incheck_step = new \stdClass();
+            $updated_incheck_step->id = $incheck_step_data->id;
+            $updated_incheck_step->value = 1;
+            $DB->update_record('question_attempt_step_data', $updated_incheck_step);
+        }
 
         return true;
     }

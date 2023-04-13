@@ -134,6 +134,21 @@ class set_submission_results extends \external_api
         } else {
             $DB->insert_record('question_attempt_step_data', $result_step_data);
         }
+
+        $incheck_step_data = $DB->get_record('question_attempt_step_data', array('attemptstepid' => $submission_step->id, 'name' => '-incheck'));
+        if ($incheck_step_data){
+            $updated_incheck_step = new \stdClass();
+            $updated_incheck_step->id = $incheck_step_data->id;
+            $updated_incheck_step->value = 0;
+            $DB->update_record('question_attempt_step_data', $updated_incheck_step);
+        } else {
+            $incheck_step_insert = new \stdClass();
+            $incheck_step_insert->attemptstepid = $submission_step->id;
+            $incheck_step_insert->name = '-incheck';
+            $incheck_step_insert->value = 0;
+            $DB->insert_record('question_attempt_step_data', $incheck_step_insert);
+        }
+
         return true;
     }
 

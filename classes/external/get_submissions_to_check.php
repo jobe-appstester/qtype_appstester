@@ -17,17 +17,21 @@ class get_submissions_to_check extends \external_api {
                 qa.id, string_agg(qas.id::character varying, \',\' ORDER BY qas.id DESC) as attemptstepsids
             FROM {question_attempts} qa
             LEFT JOIN {question_attempt_steps} qas ON qas.questionattemptid = qa.id
+            LEFT JOIN {question_attempt_step_data} qasd 
+				ON qasd.attemptstepid = qas.id 
+				AND qasd.name = \'-incheck\'
             LEFT JOIN {question} q ON qa.questionid = q.id
             WHERE 
-                q.qtype = \'appstester\' AND
-                qas.state = \'complete\'
+                q.qtype = \'appstester\'
+                AND qas.state = \'complete\'
+                AND (qasd.name IS NULL 
+                    OR (qasd.name = \'-incheck\' AND qasd.value = \'0\')
+                    )
             GROUP BY qa.id
         ');
 
-//        $array = new \stdClass();
         $array = [];
         foreach ($submissions as $s) {
-//            $array->{$s->id} = ["attemptid"=>$s->id, "stepids"=>array_map('intval', explode(',', $s->attemptstepsids))];
             $array[$s->id] = ["attemptId"=>$s->id, "attemptStepsIds"=>array_map('intval', explode(',', $s->attemptstepsids))];
         }
 

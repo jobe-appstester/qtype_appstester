@@ -57,8 +57,8 @@ class set_submission_results extends \external_api
         //getting last step by its behaviour var "-finish" to verify that attempt was finished (when regrading, we need to update finishing step manually)
         $finishing_step = $DB->get_record_sql("
             SELECT qas.*
-            FROM mdl_question_attempt_steps qas
-            JOIN mdl_question_attempt_step_data qasd ON qasd.attemptstepid = qas.id
+            FROM {question_attempt_steps} qas
+            JOIN {question_attempt_step_data} qasd ON qasd.attemptstepid = qas.id
             WHERE qas.questionattemptid = :qa_id
               AND qasd.name = '-finish' 
               AND qasd.value = '1'

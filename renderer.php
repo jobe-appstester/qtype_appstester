@@ -43,7 +43,8 @@ class qtype_appstester_renderer extends qtype_renderer {
         $checker = checker_definitions_registry::get_by_system_name($checker_system_name);
 
         if ($_state->is_active()) {
-            if ($qa->get_last_step()->has_behaviour_var('result')) {
+            $qa_step = $qa->get_last_step();
+            if ($qa_step->has_behaviour_var('result')) {
                 if ($render_result) {
                     $result = json_decode($qa->get_last_step()->get_qt_var('-result'), true);
                     return $checker->render_result_feedback($result);
@@ -53,9 +54,14 @@ class qtype_appstester_renderer extends qtype_renderer {
                 }
             }
 
-            if ($qa->get_last_step()->has_behaviour_var('status')) {
+            if ($qa_step->has_behaviour_var('status')) {
                 $status = json_decode($qa->get_last_step()->get_qt_var('-status'), true);
                 return $checker->render_status_feedback($status);
+            }
+
+            // No status or result means server didn't acknowledge this attempt yet
+            if ($_state === question_state::$invalid) {
+                return get_string('submission_is_in_queue', 'qtype_appstester');
             }
         } else {
             $laststepwithresult = $qa->get_last_step_with_behaviour_var('result');

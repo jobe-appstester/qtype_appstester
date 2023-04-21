@@ -64,13 +64,13 @@ class set_submission_status extends \external_api
             $incheck_step_insert = new \stdClass();
             $incheck_step_insert->attemptstepid = $submission_step->id;
             $incheck_step_insert->name = '-incheck';
-            $incheck_step_insert->value = 1;
+            $incheck_step_insert->value = time();
             $DB->insert_record('question_attempt_step_data', $incheck_step_insert);
         } else {
             $incheck_step_data = $DB->get_record('question_attempt_step_data', array('attemptstepid' => $submission_step->id, 'name' => '-incheck'));
             $updated_incheck_step = new \stdClass();
             $updated_incheck_step->id = $incheck_step_data->id;
-            $updated_incheck_step->value = 1;
+            $updated_incheck_step->value = time();
             $DB->update_record('question_attempt_step_data', $updated_incheck_step);
         }
 

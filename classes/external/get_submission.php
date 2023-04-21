@@ -147,11 +147,15 @@ class get_submission extends \external_api
             $parameter_name = $teacher_parameter->get_parameter_name();
             $parameter_value = $teacher_parameter->get_file_content_from_question_definition($question_definition);
 
-            $file_content_hash = sha1($parameter_value);
-            $files[$parameter_name . '_hash'] = $file_content_hash;
+            if ($parameter_value === "") {
+                $files[$parameter_name . '_hash'] = "";
+            } else {
+                $file_content_hash = sha1($parameter_value);
+                $files[$parameter_name . '_hash'] = $file_content_hash;
 
-            if (in_array($file_content_hash, $included_file_hashes, true)) {
-                $files[$parameter_name] = base64_encode($parameter_value);
+                if (in_array($file_content_hash, $included_file_hashes, true)) {
+                    $files[$parameter_name] = base64_encode($parameter_value);
+                }
             }
         }
 
@@ -167,11 +171,15 @@ class get_submission extends \external_api
                 $question_attempt_step
             );
 
-            $file_content_hash = sha1($parameter_value);
-            $files[$parameter_name . '_hash'] = $file_content_hash;
+            if ($parameter_value === "") {
+                $files[$parameter_name . '_hash'] = "";
+            } else {
+                $file_content_hash = sha1($parameter_value);
+                $files[$parameter_name . '_hash'] = $file_content_hash;
 
-            if (in_array($file_content_hash, $included_file_hashes, true)) {
-                $files[$parameter_name] = base64_encode($parameter_value);
+                if (in_array($file_content_hash, $included_file_hashes, true)) {
+                    $files[$parameter_name] = base64_encode($parameter_value);
+                }
             }
         }
 

@@ -42,9 +42,15 @@ class single_file_parameter extends base_parameter implements file_parameter
         \question_display_options $question_display_options
     ): string
     {
+        global $CFG, $COURSE;
         $draft_item_id = $question_attempt->prepare_response_files_draft_itemid($this->get_parameter_name(), $question_display_options->context->id);
-
-        $file_manager = $this->create_file_manager(1, $question_display_options, $draft_item_id);
+        $usermaxbytes = get_user_max_upload_file_size(
+            $moodle_page->context,
+            $CFG->maxbytes,
+            $COURSE->maxbytes,
+            $question_attempt->get_question()->maxbytes
+        );
+        $file_manager = $this->create_file_manager(1, $usermaxbytes, $question_display_options, $draft_item_id);
         $files_renderer = $moodle_page->get_renderer('core', 'files');
 
         $files_html = $files_renderer->render($file_manager);
@@ -61,12 +67,17 @@ class single_file_parameter extends base_parameter implements file_parameter
         return $files_html . $files_hidden_input_html;
     }
 
-    public function create_file_manager(int $max_allowed_files, question_display_options $options, string $draft_item_id): form_filemanager
+    public function create_file_manager(
+        int $max_allowed_files,
+        int $max_bytes_for_user,
+        question_display_options $options,
+        string $draft_item_id
+    ): form_filemanager
     {
         $file_manager_options = new stdClass();
         $file_manager_options->mainfile = null;
         $file_manager_options->maxfiles = $max_allowed_files;
-        $file_manager_options->maxbytes = -1;
+        $file_manager_options->maxbytes = $max_bytes_for_user;
         $file_manager_options->context = $options->context;
         $file_manager_options->return_types = FILE_INTERNAL | FILE_CONTROLLED_LINK;
         $file_manager_options->accepted_types = '.zip';
@@ -93,7 +104,11 @@ class single_file_parameter extends base_parameter implements file_parameter
             $question_definition->id
         );
 
-        return $files[array_keys($files)[1]]->get_content();
+        if (empty($files)){
+            return "";
+        } else {
+            return $files[array_keys($files)[1]]->get_content();
+        }
     }
 
     public function get_file_content_from_question_usage_and_step(
@@ -102,6 +117,10 @@ class single_file_parameter extends base_parameter implements file_parameter
     ): string
     {
         $files = $question_attempt_step->get_qt_files($this->get_parameter_name(), $question_usage_by_activity->get_owning_context()->id);
-        return $files[array_keys($files)[0]]->get_content();
+        if (empty($files)){
+            return "";
+        } else {
+            return $files[array_keys($files)[0]]->get_content();
+        }
     }
 }

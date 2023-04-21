@@ -15,6 +15,7 @@ class qtype_appstester extends question_type
             'checker_system_name',
             'hideresult_whileactive',
             'hideresult_afterfinish',
+            'maxbytes',
         );
 
         $checkers = checker_definitions_registry::get_all_definitions();
@@ -56,6 +57,15 @@ class qtype_appstester extends question_type
                 );
             }
         }
+    }
+
+    /**
+     * Return array of the choices that should be offered for the maximum file sizes.
+     * @return array|lang_string[]|string[]
+     */
+    public function max_file_size_options() {
+        global $CFG, $COURSE;
+        return get_max_upload_sizes($CFG->maxbytes, $COURSE->maxbytes,0, array('31457280', '41943040'));
     }
 
     public function move_files($questionid, $oldcontextid, $newcontextid)

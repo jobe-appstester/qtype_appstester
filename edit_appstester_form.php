@@ -21,6 +21,7 @@ class qtype_appstester_edit_form extends question_edit_form {
      */
     protected function definition_inner($mform)
     {
+        $qtype = question_bank::get_qtype('appstester');
         $checkers = checker_definitions_registry::get_all_definitions();
 
         $checkers_selection = array();
@@ -36,6 +37,9 @@ class qtype_appstester_edit_form extends question_edit_form {
 
         $mform->addElement('advcheckbox', 'hideresult_afterfinish', get_string('hideresult_afterfinish', 'qtype_appstester'));
         $mform->setDefault('hideresult_afterfinish', 0);
+
+        $mform->addElement('select', 'maxbytes', get_string('maxbytes', 'qtype_appstester'), $qtype->max_file_size_options());
+        $mform->setDefault('maxbytes', $this->get_default_value('maxbytes', 0));
 
         foreach ($checkers as $checker) {
             $teacher_parameters = $checker->get_teacher_parameters();

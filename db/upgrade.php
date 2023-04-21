@@ -47,5 +47,17 @@ function xmldb_qtype_appstester_upgrade($oldversion): bool
 
         upgrade_plugin_savepoint(true, 2023020600, 'qtype', 'appstester');
     }
+
+    if ($oldversion < 2023042000) {
+        $table = new xmldb_table('qtype_appstester_parameters');
+        if ($dbman->table_exists($table)) {
+            $field = new xmldb_field('maxbytes', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, 0);
+            if (!$dbman->field_exists($table, $field)) {
+                $dbman->add_field($table, $field);
+            }
+        }
+
+        upgrade_plugin_savepoint(true, 2023042000, 'qtype', 'appstester');
+    }
     return true;
 }

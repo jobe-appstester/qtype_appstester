@@ -9,6 +9,7 @@ $string['check_options'] = 'Checker parameters';
 $string['checker_system_name'] = 'Checker service';
 $string['hideresult_whileactive'] = 'Hide results while test attempt is active';
 $string['hideresult_afterfinish'] = 'Hide results after test attempt is finished';
+$string['maxbytes'] = 'Maximum student\'s submission file size';
 $string['results_are_hidden'] = '[Results are hidden] ';
 $string['no_files_submitted'] = 'It looks like you submitted a response without any files, if that is not true, try again or contact administrators.';
 $string['same_response_submitted'] = 'It looks like your submitted response is identical with your previous response, check your files and try again.';

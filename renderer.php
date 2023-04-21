@@ -60,7 +60,7 @@ class qtype_appstester_renderer extends qtype_renderer {
             }
 
             // No status or result means server didn't acknowledge this attempt yet
-            if ($_state === question_state::$invalid) {
+            if ($_state === question_state::$complete) {
                 return get_string('submission_is_in_queue', 'qtype_appstester');
             }
         } else {
